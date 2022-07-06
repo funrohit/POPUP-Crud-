@@ -1,0 +1,163 @@
+@model IEnumerable<ModelPop.Models.Employee>
+@{
+    ViewData["Title"] = "Index";
+}
+<body>
+    <div class="container">
+        <button type="button" class="btn btn-info btn-lg m-4" data-toggle="modal" data-target="#myModal">Add USer</button>
+        <div id="myModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">User Record</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Name</label>
+                                <input type="text" class="form-control" id="uname" placeholder="Enter your Name" required>
+
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Email</label>
+                                <input type="email" class="form-control" id="uemail" placeholder="Enter your Email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Adress</label>
+                                <input type="text" class="form-control" id="uadress" placeholder="Enter your Adress" required>
+                            </div>
+
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                                <label class="form-check-label" for="exampleCheck1">Check me out</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="uform">Submit</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div id="IdForUpdateRecord"></div>
+        <table id="myTable" class="table table-bordered" style="width:100%">
+            <thead>
+                <tr class="text-center">
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Adress</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+
+
+<script>
+    $(document).ready(function () {
+        loadUser();
+        $('#uform').click(function () {
+            var name = $('#uname').val();
+            var email = $('#uemail').val();
+            var adress = $('#uadress').val();
+            var data = { name: name, email: email, adress: adress }
+            console.log(data);
+            $.ajax({
+                type: 'POST',
+                url: '/Employee/Create',
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: data,
+                success: function (result) {
+                  console.log(result)
+                    $('#myTable').DataTable().destroy();
+                    loadUser();
+                }
+            })
+        });
+    });
+
+    function loadUser() {
+        $.ajax({
+            type: "POST",
+            url: "/Employee/IndexPost",
+            data: '{}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#myTable').DataTable().destroy();
+                console.log(data);
+                $("#myTable").DataTable(
+                    {
+                        data: data,
+                        columns: [
+                            { 'data': 'id' },
+                            { 'data': 'name' },
+                            { 'data': 'email' },
+                            { 'data': 'adress' },
+                            {
+                                data: "id", render: function (id) {
+                                    return "<a  class='btn btn-primary' onclick=EditEmployee('" + id + "'); >Edit</a>";
+                                }
+                            },
+                            {
+                                data: "id", render: function (id) {
+                                    return "<a  class='btn btn-danger' onclick=deleteEmployee('" + id + "'); >Delete</a>";
+
+                                }
+                            }
+                        ]
+                    });
+            }
+        });
+    }
+
+    function EditEmployee(id) {
+        $.ajax({
+            type: 'GET',
+            url: 'Employee/Edit',
+            data: { id: id },
+            contentType: "application/json; charset=utf-8",
+            dataType: "html",
+            success: function (res) {
+                $("#IdForUpdateRecord").html(res);
+                $("#myModalEdi").modal('show');
+                $('#myTable').DataTable().destroy();
+                loadUser();
+            }
+        })
+    } 
+
+    function deleteEmployee(id) {
+        if (confirm("Are You Sure Want to Delete This Book Record ?")) {
+
+
+            $.ajax({
+                type: 'GET',
+                url: 'Employee/Delete',
+                data: { id: id },
+                contentType: "application/json; charset=utf-8",
+                success: function (re) {
+                    $('#myTable').DataTable().destroy();
+                    loadUser();
+                }
+
+            })
+        }
+    }
+
+</script>
+
+
+
+
