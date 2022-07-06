@@ -1,0 +1,84 @@
+using Microsoft.AspNetCore.Mvc;
+using ModelPop.Data;
+using ModelPop.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace ModelPop.Controllers
+{
+    public class EmployeeController : Controller
+    {
+        private readonly ApplicationDbContext context;
+
+        public EmployeeController(ApplicationDbContext context)
+        {
+            this.context = context;
+        }
+
+        public IActionResult Index()
+        {
+          
+            return View();
+        }
+        [HttpPost]
+        public IActionResult IndexPost()
+        {
+            var result = context.employees.ToList();
+            return Json(result);
+        }
+
+
+        [HttpPost]
+        public IActionResult Create(Employee employee)
+        {
+                    
+                context.Add(employee);
+                context.SaveChanges();
+            
+            return Ok();
+        }
+
+        public IActionResult Delete(int id)
+        {
+            var emp = context.employees.SingleOrDefault(e => e.Id == id);
+            context.employees.Remove(emp);
+            context.SaveChanges();
+            TempData["error"] = "Record Deleted";
+            return Ok();
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            Employee model = new Employee();
+            var emp = context.employees.SingleOrDefault(e => e.Id == id);
+
+
+            model.Id = emp.Id;
+            model.Name = emp.Name;
+            model.Email = emp.Email;
+            model.Adress = emp.Adress;
+               
+            
+            return PartialView("_Edit", model);
+        }
+        [HttpPost]
+        public IActionResult Edit(Employee model)
+        {
+            
+
+            var emp = context.employees.SingleOrDefault(e => e.Id == model.Id);
+            
+            emp.Name = model.Name;
+            emp.Email = model.Email;
+            emp.Adress = model.Adress;
+       
+            context.employees.Update(emp);
+            context.SaveChanges();
+            TempData["error"] = "Record Updated";
+            return RedirectToAction("Index");
+        }
+    }
+}
